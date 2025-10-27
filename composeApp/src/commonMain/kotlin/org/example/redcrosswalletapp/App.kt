@@ -32,20 +32,9 @@ fun App() {
         Surface(modifier = Modifier.fillMaxSize()) {
             if (showingHome) {
                 HomeScreen (onStartClicked = { showingHome = false })
-            } else {
-                // Placeholder
-                MainScreen()
             }
         }
     }
 }
 
-@Composable
-fun MainScreen() {
-    Text(
-        text = "Kotlin Multiplatform",
-        style = MaterialTheme.typography.headlineMedium,
-        modifier = Modifier
-            .fillMaxSize()
-    )
-}
+
