@@ -2,12 +2,14 @@ package org.example.redcrosswalletapp.ui
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -22,6 +24,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.example.redcrosswalletapp.ProgressState
+import org.jetbrains.compose.resources.painterResource
+import redcrosswalletapp.composeapp.generated.resources.Res
+import redcrosswalletapp.composeapp.generated.resources.sprout
+import redcrosswalletapp.composeapp.generated.resources.sprout_1
+import redcrosswalletapp.composeapp.generated.resources.sprout_2
+import redcrosswalletapp.composeapp.generated.resources.tree
+
 
 /**
  * Progress screen displaying a progress bar with controls
@@ -53,6 +62,7 @@ private fun ProgressScreenContent(
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+
     val progress by state.progress.collectAsState()
 
     val animatedProgress by animateFloatAsState(
@@ -72,6 +82,8 @@ private fun ProgressScreenContent(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        SproutTree(progress = animatedProgress)
+
         ProgressIndicatorSection(animatedProgress = animatedProgress)
 
         ProgressControlButtons(
@@ -147,4 +159,20 @@ private fun NavigationButton(
     ) {
         Text("Back to Home")
     }
+}
+
+@Composable
+private fun SproutTree(modifier: Modifier = Modifier, progress: Float) {
+    val imageResource = when {
+        progress < 0.25 -> Res.drawable.sprout
+        progress < 0.5 -> Res.drawable.sprout_1
+        progress < 0.75 -> Res.drawable.sprout_2
+        else -> Res.drawable.tree
+    }
+
+    Image(
+        painter = painterResource(imageResource),
+        contentDescription = "Plant growth stage",
+        modifier = modifier.size(120.dp)
+    )
 }
