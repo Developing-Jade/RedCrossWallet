@@ -2,12 +2,14 @@ package org.example.redcrosswalletapp.ui
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -22,6 +24,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.example.redcrosswalletapp.ProgressState
+import org.jetbrains.compose.resources.painterResource
+import redcrosswalletapp.composeapp.generated.resources.Res
+import redcrosswalletapp.composeapp.generated.resources.Sprout
 
 /**
  * Progress screen displaying a progress bar with controls
@@ -53,6 +58,8 @@ private fun ProgressScreenContent(
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    SproutTree()
+
     val progress by state.progress.collectAsState()
 
     val animatedProgress by animateFloatAsState(
@@ -147,4 +154,13 @@ private fun NavigationButton(
     ) {
         Text("Back to Home")
     }
+}
+
+@Composable
+private fun SproutTree(modifier: Modifier = Modifier) {
+    Image(
+        painter = painterResource(Res.drawable.Sprout),
+        contentDescription = "Seed",
+        modifier = modifier.size(120.dp)
+    )
 }
