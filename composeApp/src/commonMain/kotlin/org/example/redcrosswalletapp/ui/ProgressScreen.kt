@@ -26,7 +26,11 @@ import androidx.compose.ui.unit.dp
 import org.example.redcrosswalletapp.ProgressState
 import org.jetbrains.compose.resources.painterResource
 import redcrosswalletapp.composeapp.generated.resources.Res
-import redcrosswalletapp.composeapp.generated.resources.Sprout
+import redcrosswalletapp.composeapp.generated.resources.sprout
+import redcrosswalletapp.composeapp.generated.resources.sprout_1
+import redcrosswalletapp.composeapp.generated.resources.sprout_2
+import redcrosswalletapp.composeapp.generated.resources.tree
+
 
 /**
  * Progress screen displaying a progress bar with controls
@@ -58,7 +62,6 @@ private fun ProgressScreenContent(
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    SproutTree()
 
     val progress by state.progress.collectAsState()
 
@@ -79,6 +82,8 @@ private fun ProgressScreenContent(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        SproutTree(progress = animatedProgress)
+
         ProgressIndicatorSection(animatedProgress = animatedProgress)
 
         ProgressControlButtons(
@@ -157,10 +162,17 @@ private fun NavigationButton(
 }
 
 @Composable
-private fun SproutTree(modifier: Modifier = Modifier) {
+private fun SproutTree(modifier: Modifier = Modifier, progress: Float) {
+    val imageResource = when {
+        progress < 0.25 -> Res.drawable.sprout
+        progress < 0.5 -> Res.drawable.sprout_1
+        progress < 0.75 -> Res.drawable.sprout_2
+        else -> Res.drawable.tree
+    }
+
     Image(
-        painter = painterResource(Res.drawable.Sprout),
-        contentDescription = "Seed",
+        painter = painterResource(imageResource),
+        contentDescription = "Plant growth stage",
         modifier = modifier.size(120.dp)
     )
 }
