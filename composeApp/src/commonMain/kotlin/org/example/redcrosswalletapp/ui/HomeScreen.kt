@@ -24,16 +24,16 @@ import redcrosswalletapp.composeapp.generated.resources.red_cross_seed
 /**
  * Home screen displaying welcome message and call-to-action button
  *
+ * @param onNavigateToProgress Callback invoked when user wants to navigate to progress screen
  * @param title Main title text
  * @param subtitle Secondary text below title
- * @param onStartClicked Callback invoked when the donation button is clicked
  * @param modifier Optional modifier for the root container
  */
 @Composable
 fun HomeScreen(
+    onNavigateToProgress: () -> Unit,
     title: String = "Welcome",
     subtitle: String = "Red Cross wallet",
-    onStartClicked: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -46,7 +46,7 @@ fun HomeScreen(
         HomeScreenContent(
             title = title,
             subtitle = subtitle,
-            onStartClicked = onStartClicked
+            onNavigateToProgress = onNavigateToProgress
         )
     }
 }
@@ -55,17 +55,17 @@ fun HomeScreen(
 private fun HomeScreenContent(
     title: String,
     subtitle: String,
-    onStartClicked: () -> Unit
+    onNavigateToProgress: () -> Unit
 ) {
     RedCrossLogo()
-    
+
     Spacer(modifier = Modifier.height(24.dp))
-    
+
     WelcomeText(title = title, subtitle = subtitle)
-    
+
     Spacer(modifier = Modifier.height(48.dp))
-    
-    DonationButton(onClick = onStartClicked)
+
+    DonationButton(onClick = onNavigateToProgress)
 }
 
 @Composable
@@ -111,6 +111,6 @@ private fun DonationButton(
             .width(200.dp)
             .height(48.dp)
     ) {
-        Text(text = "Donation")
+        Text(text = "Start Donation")
     }
 }
