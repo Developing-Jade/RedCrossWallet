@@ -19,7 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.painterResource
 import redcrosswalletapp.composeapp.generated.resources.Res
-import redcrosswalletapp.composeapp.generated.resources.red_cross_seed
+import redcrosswalletapp.composeapp.generated.resources.app_logo
 
 /**
  * Home screen displaying welcome message and call-to-action button
@@ -32,8 +32,9 @@ import redcrosswalletapp.composeapp.generated.resources.red_cross_seed
 @Composable
 fun HomeScreen(
     onNavigateToProgress: () -> Unit,
+    onNavigateToChallenges: () -> Unit = {},
     title: String = "Welcome",
-    subtitle: String = "Red Cross wallet",
+    subtitle: String = "Red Cross emissions wallet",
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -46,7 +47,8 @@ fun HomeScreen(
         HomeScreenContent(
             title = title,
             subtitle = subtitle,
-            onNavigateToProgress = onNavigateToProgress
+            onNavigateToProgress = onNavigateToProgress,
+            onNavigateToChallenges = onNavigateToChallenges
         )
     }
 }
@@ -55,7 +57,8 @@ fun HomeScreen(
 private fun HomeScreenContent(
     title: String,
     subtitle: String,
-    onNavigateToProgress: () -> Unit
+    onNavigateToProgress: () -> Unit,
+    onNavigateToChallenges: () -> Unit
 ) {
     RedCrossLogo()
 
@@ -66,12 +69,16 @@ private fun HomeScreenContent(
     Spacer(modifier = Modifier.height(48.dp))
 
     DonationButton(onClick = onNavigateToProgress)
+
+    Spacer(modifier = Modifier.height(16.dp))
+
+    ChallengeButton(onClick = onNavigateToChallenges)
 }
 
 @Composable
 private fun RedCrossLogo(modifier: Modifier = Modifier) {
     Image(
-        painter = painterResource(Res.drawable.red_cross_seed),
+        painter = painterResource(Res.drawable.app_logo),
         contentDescription = "Red Cross Logo",
         modifier = modifier.size(120.dp)
     )
@@ -112,5 +119,21 @@ private fun DonationButton(
             .height(48.dp)
     ) {
         Text(text = "Start Donation")
+    }
+}
+
+@Composable
+private fun ChallengeButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Button(
+        onClick = onClick,
+        shape = RoundedCornerShape(12.dp),
+        modifier = modifier
+            .width(200.dp)
+            .height(48.dp)
+    ) {
+        Text(text = "View Challenges")
     }
 }

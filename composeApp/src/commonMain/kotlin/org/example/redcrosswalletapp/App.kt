@@ -5,6 +5,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import org.example.redcrosswalletapp.ui.ChallengeScreen
 import org.example.redcrosswalletapp.ui.HomeScreen
 import org.example.redcrosswalletapp.ui.ProgressScreen
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -14,7 +15,8 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
  */
 enum class Screen {
     HOME,
-    PROGRESS
+    PROGRESS,
+    CHALLENGE
 }
 
 /**
@@ -40,12 +42,21 @@ private fun AppContent(appState: AppState) {
             HomeScreen(
                 onNavigateToProgress = {
                     appState.navigateTo(Screen.PROGRESS)
+                },
+                onNavigateToChallenges = {
+                    appState.navigateTo(Screen.CHALLENGE)
                 }
             )
         }
         Screen.PROGRESS -> {
             ProgressScreen(
                 state = appState.progressState,
+                onNavigateBack = { appState.navigateToHome() }
+            )
+        }
+        Screen.CHALLENGE -> {
+            ChallengeScreen(
+                state = appState.challengeState,
                 onNavigateBack = { appState.navigateToHome() }
             )
         }

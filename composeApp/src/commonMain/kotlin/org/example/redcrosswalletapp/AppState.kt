@@ -10,11 +10,13 @@ import androidx.compose.runtime.setValue
  */
 class AppState {
     private var _currentScreen by mutableStateOf(Screen.HOME)
-
+        private set
+    
     val currentScreen: Screen
         get() = _currentScreen
 
     val progressState = ProgressState()
+    val challengeState = ChallengeState()
 
     /**
      * Navigate to a specific screen
