@@ -44,6 +44,7 @@ import redcrosswalletapp.composeapp.generated.resources.tree
 @Composable
 fun ProgressScreen(
     state: ProgressState,
+    challengePoints: Int = 0,
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -55,6 +56,7 @@ fun ProgressScreen(
     ) {
         ProgressScreenContent(
             state = state,
+            challengePoints = challengePoints,
             onNavigateBack = onNavigateBack
         )
     }
@@ -63,6 +65,7 @@ fun ProgressScreen(
 @Composable
 private fun ProgressScreenContent(
     state: ProgressState,
+    challengePoints: Int,
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -88,7 +91,10 @@ private fun ProgressScreenContent(
     ) {
         SproutTree(progress = animatedProgress)
 
-        ProgressIndicatorSection(animatedProgress = animatedProgress)
+        ProgressIndicatorSection(
+            animatedProgress = animatedProgress,
+            challengePoints = challengePoints
+            )
 
         ProgressControlButtons(
             onAdvanceQuarter = { state.advanceQuarter() },
@@ -102,6 +108,7 @@ private fun ProgressScreenContent(
 @Composable
 private fun ProgressIndicatorSection(
     animatedProgress: Float,
+    challengePoints: Int,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -112,6 +119,12 @@ private fun ProgressIndicatorSection(
         Text(
             text = "Donation Progress",
             style = MaterialTheme.typography.titleLarge
+        )
+
+        Text(
+            text = "Total Points: $challengePoints",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.primary
         )
 
         LinearProgressIndicator(

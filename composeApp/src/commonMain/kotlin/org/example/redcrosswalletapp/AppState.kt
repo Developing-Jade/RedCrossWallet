@@ -3,6 +3,10 @@ package org.example.redcrosswalletapp
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 
 /**
  * Application-level state holder
@@ -11,7 +15,7 @@ import androidx.compose.runtime.setValue
 class AppState {
     private var _currentScreen by mutableStateOf(Screen.HOME)
         private set
-    
+
     val currentScreen: Screen
         get() = _currentScreen
 
