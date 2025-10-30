@@ -32,7 +32,6 @@ import redcrosswalletapp.composeapp.generated.resources.app_logo
 @Composable
 fun HomeScreen(
     onNavigateToProgress: () -> Unit,
-    onNavigateToChallenges: () -> Unit = {},
     title: String = "Welcome",
     subtitle: String = "Red Cross emissions wallet",
     modifier: Modifier = Modifier
@@ -47,8 +46,7 @@ fun HomeScreen(
         HomeScreenContent(
             title = title,
             subtitle = subtitle,
-            onNavigateToProgress = onNavigateToProgress,
-            onNavigateToChallenges = onNavigateToChallenges
+            onNavigateToProgress = onNavigateToProgress
         )
     }
 }
@@ -57,8 +55,7 @@ fun HomeScreen(
 private fun HomeScreenContent(
     title: String,
     subtitle: String,
-    onNavigateToProgress: () -> Unit,
-    onNavigateToChallenges: () -> Unit
+    onNavigateToProgress: () -> Unit
 ) {
     RedCrossLogo()
 
@@ -69,10 +66,6 @@ private fun HomeScreenContent(
     Spacer(modifier = Modifier.height(48.dp))
 
     DonationButton(onClick = onNavigateToProgress)
-
-    Spacer(modifier = Modifier.height(16.dp))
-
-    ChallengeButton(onClick = onNavigateToChallenges)
 }
 
 @Composable
@@ -119,21 +112,5 @@ private fun DonationButton(
             .height(48.dp)
     ) {
         Text(text = "Start Donation")
-    }
-}
-
-@Composable
-private fun ChallengeButton(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Button(
-        onClick = onClick,
-        shape = RoundedCornerShape(12.dp),
-        modifier = modifier
-            .width(200.dp)
-            .height(48.dp)
-    ) {
-        Text(text = "View Challenges")
     }
 }

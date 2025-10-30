@@ -9,10 +9,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.LinearProgressIndicator
@@ -39,6 +42,7 @@ import redcrosswalletapp.composeapp.generated.resources.tree
  *
  * @param state The progress state to observe and control
  * @param onNavigateBack Callback invoked when user wants to navigate back
+ * @param onNavigateToChallenges Callback invoked when user wants to view challenges
  * @param modifier Optional modifier for the root container
  */
 @Composable
@@ -46,6 +50,7 @@ fun ProgressScreen(
     state: ProgressState,
     challengePoints: Int = 0,
     onNavigateBack: () -> Unit,
+    onNavigateToChallenges: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -57,7 +62,8 @@ fun ProgressScreen(
         ProgressScreenContent(
             state = state,
             challengePoints = challengePoints,
-            onNavigateBack = onNavigateBack
+            onNavigateBack = onNavigateBack,
+            onNavigateToChallenges = onNavigateToChallenges
         )
     }
 }
@@ -67,6 +73,7 @@ private fun ProgressScreenContent(
     state: ProgressState,
     challengePoints: Int,
     onNavigateBack: () -> Unit,
+    onNavigateToChallenges: () -> Unit,
     modifier: Modifier = Modifier
 ) {
 
@@ -97,9 +104,10 @@ private fun ProgressScreenContent(
             )
 
         ProgressControlButtons(
-            onAdvanceQuarter = { state.advanceQuarter() },
             onReset = { state.reset() }
         )
+
+        ChallengeButton(onClick = onNavigateToChallenges)
 
         NavigationButton(onNavigateBack = onNavigateBack)
     }
@@ -141,7 +149,6 @@ private fun ProgressIndicatorSection(
 
 @Composable
 private fun ProgressControlButtons(
-    onAdvanceQuarter: () -> Unit,
     onReset: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -149,12 +156,6 @@ private fun ProgressControlButtons(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Button(
-            onClick = onAdvanceQuarter,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Add 25%")
-        }
 
         Button(
             onClick = onReset,
@@ -175,6 +176,23 @@ private fun NavigationButton(
         modifier = modifier.fillMaxWidth()
     ) {
         Text("Back to Home")
+    }
+}
+
+
+@Composable
+private fun ChallengeButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Button(
+        onClick = onClick,
+        shape = RoundedCornerShape(12.dp),
+        modifier = modifier
+            .width(200.dp)
+            .height(48.dp)
+    ) {
+        Text(text = "View Challenges")
     }
 }
 

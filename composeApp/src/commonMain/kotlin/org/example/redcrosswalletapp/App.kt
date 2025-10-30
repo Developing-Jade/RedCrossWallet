@@ -53,9 +53,6 @@ private fun AppContent(appState: AppState) {
             HomeScreen(
                 onNavigateToProgress = {
                     appState.navigateTo(Screen.PROGRESS)
-                },
-                onNavigateToChallenges = {
-                    appState.navigateTo(Screen.CHALLENGE)
                 }
             )
         }
@@ -63,6 +60,7 @@ private fun AppContent(appState: AppState) {
             ProgressScreen(
                 state = appState.progressState,
                 challengePoints = challengePoints,
+                onNavigateToChallenges = { appState.navigateTo(Screen.CHALLENGE) },
                 onNavigateBack = { appState.navigateToHome() }
             )
         }
