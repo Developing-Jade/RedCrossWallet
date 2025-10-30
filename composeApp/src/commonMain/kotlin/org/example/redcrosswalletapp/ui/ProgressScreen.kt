@@ -78,6 +78,7 @@ private fun ProgressScreenContent(
 ) {
 
     val progress by state.progress.collectAsState()
+    val level by state.level.collectAsState()
 
     val animatedProgress by animateFloatAsState(
         targetValue = progress,
@@ -96,7 +97,9 @@ private fun ProgressScreenContent(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        SproutTree(progress = animatedProgress)
+        SproutTree(level = level)
+
+        levelDisplay(level = level)
 
         ProgressIndicatorSection(
             animatedProgress = animatedProgress,
@@ -111,6 +114,25 @@ private fun ProgressScreenContent(
 
         NavigationButton(onNavigateBack = onNavigateBack)
     }
+}
+
+@Composable
+private fun levelDisplay(
+    level: Int,
+    modifier: Modifier = Modifier
+    ) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = "Level $level",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.primary
+        )
+    }
+
 }
 
 @Composable
@@ -197,17 +219,17 @@ private fun ChallengeButton(
 }
 
 @Composable
-private fun SproutTree(modifier: Modifier = Modifier, progress: Float) {
-    val imageResource = when {
-        progress < 0.25 -> Res.drawable.sprout
-        progress < 0.5 -> Res.drawable.sprout_1
-        progress < 0.75 -> Res.drawable.sprout_2
+private fun SproutTree(modifier: Modifier = Modifier, level: Int) {
+    val imageResource = when (level) {
+        1 -> Res.drawable.sprout
+        2 -> Res.drawable.sprout_1
+        3 -> Res.drawable.sprout_2
         else -> Res.drawable.tree
     }
 
     Image(
         painter = painterResource(imageResource),
-        contentDescription = "Plant growth stage",
+        contentDescription = "Plant growth stage: Level $level",
         modifier = modifier.size(120.dp)
     )
 }
