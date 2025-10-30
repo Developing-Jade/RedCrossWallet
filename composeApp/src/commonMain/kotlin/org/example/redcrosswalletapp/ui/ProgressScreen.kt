@@ -9,10 +9,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.LinearProgressIndicator
@@ -39,12 +42,15 @@ import redcrosswalletapp.composeapp.generated.resources.tree
  *
  * @param state The progress state to observe and control
  * @param onNavigateBack Callback invoked when user wants to navigate back
+ * @param onNavigateToChallenges Callback invoked when user wants to view challenges
  * @param modifier Optional modifier for the root container
  */
 @Composable
 fun ProgressScreen(
     state: ProgressState,
+    challengePoints: Int = 0,
     onNavigateBack: () -> Unit,
+    onNavigateToChallenges: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -55,7 +61,9 @@ fun ProgressScreen(
     ) {
         ProgressScreenContent(
             state = state,
-            onNavigateBack = onNavigateBack
+            challengePoints = challengePoints,
+            onNavigateBack = onNavigateBack,
+            onNavigateToChallenges = onNavigateToChallenges
         )
     }
 }
@@ -63,11 +71,14 @@ fun ProgressScreen(
 @Composable
 private fun ProgressScreenContent(
     state: ProgressState,
+    challengePoints: Int,
     onNavigateBack: () -> Unit,
+    onNavigateToChallenges: () -> Unit,
     modifier: Modifier = Modifier
 ) {
 
     val progress by state.progress.collectAsState()
+    val level by state.level.collectAsState()
 
     val animatedProgress by animateFloatAsState(
         targetValue = progress,
@@ -86,22 +97,48 @@ private fun ProgressScreenContent(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        SproutTree(progress = animatedProgress)
+        SproutTree(level = level)
 
-        ProgressIndicatorSection(animatedProgress = animatedProgress)
+        levelDisplay(level = level)
+
+        ProgressIndicatorSection(
+            animatedProgress = animatedProgress,
+            challengePoints = challengePoints
+            )
 
         ProgressControlButtons(
-            onAdvanceQuarter = { state.advanceQuarter() },
             onReset = { state.reset() }
         )
+
+        ChallengeButton(onClick = onNavigateToChallenges)
 
         NavigationButton(onNavigateBack = onNavigateBack)
     }
 }
 
 @Composable
+private fun levelDisplay(
+    level: Int,
+    modifier: Modifier = Modifier
+    ) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = "Level $level",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.primary
+        )
+    }
+
+}
+
+@Composable
 private fun ProgressIndicatorSection(
     animatedProgress: Float,
+    challengePoints: Int,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -112,6 +149,12 @@ private fun ProgressIndicatorSection(
         Text(
             text = "Donation Progress",
             style = MaterialTheme.typography.titleLarge
+        )
+
+        Text(
+            text = "Total Points: $challengePoints",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.primary
         )
 
         LinearProgressIndicator(
@@ -128,7 +171,6 @@ private fun ProgressIndicatorSection(
 
 @Composable
 private fun ProgressControlButtons(
-    onAdvanceQuarter: () -> Unit,
     onReset: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -136,12 +178,6 @@ private fun ProgressControlButtons(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Button(
-            onClick = onAdvanceQuarter,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Add 25%")
-        }
 
         Button(
             onClick = onReset,
@@ -165,18 +201,35 @@ private fun NavigationButton(
     }
 }
 
+
 @Composable
-private fun SproutTree(modifier: Modifier = Modifier, progress: Float) {
-    val imageResource = when {
-        progress < 0.25 -> Res.drawable.sprout
-        progress < 0.5 -> Res.drawable.sprout_1
-        progress < 0.75 -> Res.drawable.sprout_2
+private fun ChallengeButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Button(
+        onClick = onClick,
+        shape = RoundedCornerShape(12.dp),
+        modifier = modifier
+            .width(200.dp)
+            .height(48.dp)
+    ) {
+        Text(text = "View Challenges")
+    }
+}
+
+@Composable
+private fun SproutTree(modifier: Modifier = Modifier, level: Int) {
+    val imageResource = when (level) {
+        1 -> Res.drawable.sprout
+        2 -> Res.drawable.sprout_1
+        3 -> Res.drawable.sprout_2
         else -> Res.drawable.tree
     }
 
     Image(
         painter = painterResource(imageResource),
-        contentDescription = "Plant growth stage",
+        contentDescription = "Plant growth stage: Level $level",
         modifier = modifier.size(120.dp)
     )
 }

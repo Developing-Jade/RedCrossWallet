@@ -27,6 +27,15 @@ enum class Screen {
 @Preview
 fun App() {
     val appState = remember { AppState() }
+
+
+    // Collect flow in composable scope
+    LaunchedEffect(appState) {
+        appState.challengeState.totalPoints.collect { points ->
+            val progressValue = (points.toFloat() / 200).coerceIn(0f, 1f)
+            appState.progressState.setProgress(progressValue)
+        }
+    }
     
     MaterialTheme {
         Surface(modifier = Modifier.fillMaxSize()) {
@@ -37,20 +46,21 @@ fun App() {
 
 @Composable
 private fun AppContent(appState: AppState) {
+    val challengePoints by appState.challengeState.totalPoints.collectAsState()
+
     when (appState.currentScreen) {
         Screen.HOME -> {
             HomeScreen(
                 onNavigateToProgress = {
                     appState.navigateTo(Screen.PROGRESS)
-                },
-                onNavigateToChallenges = {
-                    appState.navigateTo(Screen.CHALLENGE)
                 }
             )
         }
         Screen.PROGRESS -> {
             ProgressScreen(
                 state = appState.progressState,
+                challengePoints = challengePoints,
+                onNavigateToChallenges = { appState.navigateTo(Screen.CHALLENGE) },
                 onNavigateBack = { appState.navigateToHome() }
             )
         }
