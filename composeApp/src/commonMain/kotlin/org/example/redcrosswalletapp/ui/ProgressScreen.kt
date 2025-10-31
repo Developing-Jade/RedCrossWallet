@@ -36,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
@@ -69,6 +70,7 @@ fun ProgressScreen(
     // -----------------------------------------------------------------
     val progressState = appState.progressState
     val totalPoints by appState.challengeState.totalPoints.collectAsState()
+    val isOnProgressScreen by appState.isOnProgressScreen
 
     // -----------------------------------------------------------------
     // Snackbar host – a single place where we’ll show transient messages
@@ -98,6 +100,7 @@ fun ProgressScreen(
             progressState = progressState,
             totalPoints = totalPoints,
             appState = appState,
+            isVisible = isOnProgressScreen,
             onNavigateBack = onNavigateBack,
             onNavigateToChallenges = onNavigateToChallenges,
             showMessage = ::showMessage          // pass the helper down
@@ -119,6 +122,7 @@ private fun ProgressScreenContent(
     progressState: ProgressState,
     totalPoints: Int,
     appState: AppState,
+    isVisible: Boolean,
     onNavigateBack: () -> Unit,
     onNavigateToChallenges: () -> Unit,
     // Lambda that shows a transient message (snackbar)
@@ -137,12 +141,26 @@ private fun ProgressScreenContent(
     var countText by remember { mutableStateOf("") }
 
     // -----------------------------------------------------------------
-    // Animated progress bar
+    // Animated progress bar - Only animate when the screen is visible
     // -----------------------------------------------------------------
+    // When "isVisible" is false, force progress to 0f so the animation stops
+    val targetProgress = if (isVisible) progress else 0f
+
     val animatedProgress by animateFloatAsState(
-        targetValue = progress,
+        targetValue = targetProgress,
         animationSpec = tween(durationMillis = 300),
         label = "progress_animation"
+    )
+
+    // -----------------------------------------------------------------
+    // Image animation – we’ll fade the sprout/tree in only when visible.
+    // -----------------------------------------------------------------
+    // `alpha` goes from 0 → 1 the first time the screen becomes visible.
+    // Later visits keep it at 1 (no flicker).
+    val imageAlpha by animateFloatAsState(
+        targetValue = if (isVisible) 1f else 0f,
+        animationSpec = tween(durationMillis = 500),
+        label = "image_fade"
     )
 
     // -----------------------------------------------------------------
@@ -161,9 +179,9 @@ private fun ProgressScreenContent(
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
         // -------------------------------------------------------------
-        // Plant graphic (sprout / tree)
+        // Plant graphic (sprout / tree) - fade in when the screen is visible
         // -------------------------------------------------------------
-        SproutTree(level = level)
+        SproutTree(level = level, alpha = imageAlpha)
 
         // -------------------------------------------------------------
         // Level label
@@ -331,7 +349,11 @@ private fun ChallengeButton(onClick: () -> Unit, modifier: Modifier = Modifier) 
 }
 
 @Composable
-private fun SproutTree(modifier: Modifier = Modifier, level: Int) {
+private fun SproutTree(
+    modifier: Modifier = Modifier,
+    level: Int,
+    alpha: Float = 1f
+) {
     val imageResource = when (level) {
         1 -> Res.drawable.sprout
         2 -> Res.drawable.sprout_1
@@ -343,5 +365,7 @@ private fun SproutTree(modifier: Modifier = Modifier, level: Int) {
         painter = painterResource(imageResource),
         contentDescription = "Plant growth stage: Level $level",
         modifier = modifier.size(120.dp)
+            //   graphicsLayer applies an opacity change without triggering a recomposition of the Image
+        .graphicsLayer { this.alpha = alpha } // Fade effect
     )
 }

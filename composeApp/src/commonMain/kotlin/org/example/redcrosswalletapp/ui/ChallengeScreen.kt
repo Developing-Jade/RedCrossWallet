@@ -125,7 +125,7 @@ private fun ChallengeHeader(
             onClick = onNavigateBack,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Back to Home")
+            Text("Go Back")
         }
     }
 }

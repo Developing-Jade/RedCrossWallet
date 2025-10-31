@@ -67,7 +67,7 @@ private fun AppContent(appState: AppState) {
             ChallengeScreen(
                 state = appState.challengeState,
                 // The challenge screen already knows how to navigate back
-                onNavigateBack = { appState.navigateToHome() }
+                onNavigateBack = { appState.navigateTo(Screen.PROGRESS) }
             )
         }
     }
