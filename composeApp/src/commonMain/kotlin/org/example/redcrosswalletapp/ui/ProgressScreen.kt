@@ -9,13 +9,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -196,9 +193,8 @@ private fun ProgressScreenContent(
         )
 
         // -------------------------------------------------------------
-        // Control buttons (reset, navigation)
+        // Navigation buttons
         // -------------------------------------------------------------
-        ProgressControlButtons(onReset = { progressState.reset() })
         ChallengeButton(onClick = onNavigateToChallenges)
         NavigationButton(onNavigateBack = onNavigateBack)
 
@@ -312,21 +308,6 @@ private fun ProgressIndicatorSection(
 }
 
 @Composable
-private fun ProgressControlButtons(onReset: () -> Unit, modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Button(
-            onClick = onReset,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Reset")
-        }
-    }
-}
-
-@Composable
 private fun NavigationButton(onNavigateBack: () -> Unit, modifier: Modifier = Modifier) {
     Button(
         onClick = onNavigateBack,
@@ -340,8 +321,7 @@ private fun NavigationButton(onNavigateBack: () -> Unit, modifier: Modifier = Mo
 private fun ChallengeButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
     Button(
         onClick = onClick,
-        shape = RoundedCornerShape(12.dp),
-        modifier = modifier.width(200.dp).height(48.dp)
+        modifier = modifier.fillMaxWidth()
     ) {
         Text(text = "View Challenges")
     }
