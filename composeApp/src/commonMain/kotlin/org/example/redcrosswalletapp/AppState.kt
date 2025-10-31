@@ -1,6 +1,7 @@
 package org.example.redcrosswalletapp
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.CoroutineScope
@@ -57,17 +58,24 @@ class AppState {
             .launchIn(uiScope)          // <-- use the persistent UI scope
     }
 
-    /**
-     * Navigate to a specific screen
-     */
+    /** True when the Progress screen is the current destination. */
+    private val _isOnProgressScreen = mutableStateOf(false)
+    val isOnProgressScreen: State<Boolean> = _isOnProgressScreen
+
+    /** Navigate to a specific screen and update the visibility flag. */
     fun navigateTo(screen: Screen) {
         _currentScreen = screen
+        // Update the flag – only true for PROGRESS, false otherwise
+        _isOnProgressScreen.value = (screen == Screen.PROGRESS)
     }
 
-    /**
-     * Navigate back to home screen
-     */
+    /** Shortcut for returning home (keeps the flag false). */
     fun navigateToHome() {
         navigateTo(Screen.HOME)
+    }
+
+    // UI-friendly call for donation
+    fun donateClothing(itemCount: Int) {
+        challengeState.donateClothing(itemCount)
     }
 }
