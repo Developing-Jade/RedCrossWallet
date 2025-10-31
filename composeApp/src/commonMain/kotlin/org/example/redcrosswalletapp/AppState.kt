@@ -57,6 +57,11 @@ class AppState {
             .launchIn(uiScope)          // <-- use the persistent UI scope
     }
 
+    // UI-friendly call for donation
+    fun donateClothing(itemCount: Int) {
+        challengeState.donateClothing(itemCount)
+    }
+
     /**
      * Navigate to a specific screen
      */

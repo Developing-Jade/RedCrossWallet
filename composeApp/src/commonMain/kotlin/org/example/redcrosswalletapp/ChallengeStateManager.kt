@@ -19,28 +19,42 @@ class ChallengeState {
     val totalPoints: StateFlow<Int> = _totalPoints.asStateFlow()
 
     /**
-     * Mark a challenge as completed and award points
+     * Call this when the user decides to donate `itemCount` pieces of clothing.
+     *
+     * @param itemCount Number of items (must be > 0)
      */
-    fun completeChallenge(challengeId: Int) {
-        val index = _challenges.indexOfFirst { it.id == challengeId }
-        if (index != -1 && !_challenges[index].isCompleted) {
-            val challenge = _challenges[index]
-            _challenges[index] = challenge.copy(isCompleted = true)
-            _totalPoints.value += challenge.points
-        }
+    fun donateClothing(itemCount: Int) {
+        require(itemCount > 0) { "Item count must be positive" }
+
+        // Grant points: 10 points per item
+        val pointsToAdd = itemCount * POINTS_PER_ITEM
+        _totalPoints.value += pointsToAdd
     }
 
-    /**
-     * Reset a challenge
-     */
-    fun resetChallenge(challengeId: Int) {
-        val index = _challenges.indexOfFirst { it.id == challengeId }
-        if (index != -1 && _challenges[index].isCompleted) {
-            val challenge = _challenges[index]
-            _challenges[index] = challenge.copy(isCompleted = false)
-            _totalPoints.value -= challenge.points
+        /**
+         * Mark a challenge as completed and award points
+         */
+        fun completeChallenge(challengeId: Int) {
+            val index = _challenges.indexOfFirst { it.id == challengeId }
+            if (index != -1 && !_challenges[index].isCompleted) {
+                val challenge = _challenges[index]
+                _challenges[index] = challenge.copy(isCompleted = true)
+                _totalPoints.value += challenge.points
+            }
         }
-    }
+
+        /**
+         * Reset a challenge
+         */
+        fun resetChallenge(challengeId: Int) {
+            val index = _challenges.indexOfFirst { it.id == challengeId }
+            if (index != -1 && _challenges[index].isCompleted) {
+                val challenge = _challenges[index]
+                _challenges[index] = challenge.copy(isCompleted = false)
+                _totalPoints.value -= challenge.points
+            }
+        }
+
 
     private fun getInitialChallenges() = listOf(
         Challenge(
@@ -114,4 +128,8 @@ class ChallengeState {
             category = ChallengeCategory.FOOD
         )
     )
+
+    companion object {
+        const val POINTS_PER_ITEM = 10
+    }
 }

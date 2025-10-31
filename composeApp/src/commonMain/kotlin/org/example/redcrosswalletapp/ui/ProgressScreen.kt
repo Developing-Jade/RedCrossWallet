@@ -16,18 +16,31 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
+import org.example.redcrosswalletapp.AppState
+import org.example.redcrosswalletapp.ChallengeState
 import org.example.redcrosswalletapp.ProgressState
 import org.jetbrains.compose.resources.painterResource
 import redcrosswalletapp.composeapp.generated.resources.Res
@@ -36,56 +49,105 @@ import redcrosswalletapp.composeapp.generated.resources.sprout_1
 import redcrosswalletapp.composeapp.generated.resources.sprout_2
 import redcrosswalletapp.composeapp.generated.resources.tree
 
-
 /**
- * Progress screen displaying a progress bar with controls
+ * Progress screen displaying a progress bar, level info, and a donation UI.
  *
- * @param state The progress state to observe and control
- * @param onNavigateBack Callback invoked when user wants to navigate back
- * @param onNavigateToChallenges Callback invoked when user wants to view challenges
- * @param modifier Optional modifier for the root container
+ * @param appState   Global state holder (contains ProgressState & ChallengeState).
+ * @param onNavigateBack            Callback for the “Back” button.
+ * @param onNavigateToChallenges    Callback for the “View Challenges” button.
+ * @param modifier Optional root‑modifier.
  */
 @Composable
 fun ProgressScreen(
-    state: ProgressState,
-    challengePoints: Int = 0,
+    appState: AppState,
     onNavigateBack: () -> Unit,
     onNavigateToChallenges: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // -----------------------------------------------------------------
+    // Pull the pieces we need from AppState
+    // -----------------------------------------------------------------
+    val progressState = appState.progressState
+    val totalPoints by appState.challengeState.totalPoints.collectAsState()
+
+    // -----------------------------------------------------------------
+    // Snackbar host – a single place where we’ll show transient messages
+    // -----------------------------------------------------------------
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+
+    // Helper that any part of this composable can call
+    fun showMessage(message: String) {
+        coroutineScope.launch {
+            snackbarHostState.showSnackbar(message)
+        }
+    }
+
+    // -----------------------------------------------------------------
+    //    Layout – the whole screen lives inside a Box, so we can overlay
+    //    the SnackbarHost at the bottom.
+    // -----------------------------------------------------------------
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFFF3FFC5)), //Light green background color
+            .background(Color(0xFFF3FFC5)), // light‑green background
         contentAlignment = Alignment.Center
     ) {
+        // Main content
         ProgressScreenContent(
-            state = state,
-            challengePoints = challengePoints,
+            progressState = progressState,
+            totalPoints = totalPoints,
+            appState = appState,
             onNavigateBack = onNavigateBack,
-            onNavigateToChallenges = onNavigateToChallenges
+            onNavigateToChallenges = onNavigateToChallenges,
+            showMessage = ::showMessage          // pass the helper down
+        )
+
+        // Snackbar overlay (automatically appears at the bottom)
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
         )
     }
 }
 
+/* -------------------------------------------------------------
+   Inner UI
+   ------------------------------------------------------------- */
 @Composable
 private fun ProgressScreenContent(
-    state: ProgressState,
-    challengePoints: Int,
+    progressState: ProgressState,
+    totalPoints: Int,
+    appState: AppState,
     onNavigateBack: () -> Unit,
     onNavigateToChallenges: () -> Unit,
+    // Lambda that shows a transient message (snackbar)
+    showMessage: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // -----------------------------------------------------------------
+    // Observe progress & level
+    // -----------------------------------------------------------------
+    val progress by progressState.progress.collectAsState()
+    val level by progressState.level.collectAsState()
 
-    val progress by state.progress.collectAsState()
-    val level by state.level.collectAsState()
+    // -----------------------------------------------------------------
+    // Local UI state for the donation input
+    // -----------------------------------------------------------------
+    var countText by remember { mutableStateOf("") }
 
+    // -----------------------------------------------------------------
+    // Animated progress bar
+    // -----------------------------------------------------------------
     val animatedProgress by animateFloatAsState(
         targetValue = progress,
         animationSpec = tween(durationMillis = 300),
         label = "progress_animation"
     )
 
+    // -----------------------------------------------------------------
+    // Scroll handling (keyboard may push UI up)
+    // -----------------------------------------------------------------
     val scrollState = rememberScrollState()
 
     Column(
@@ -93,34 +155,97 @@ private fun ProgressScreenContent(
             .widthIn(max = 600.dp)
             .fillMaxWidth()
             .padding(horizontal = 24.dp, vertical = 16.dp)
-            .verticalScroll(scrollState),
+            .verticalScroll(scrollState)
+            .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
+        // -------------------------------------------------------------
+        // Plant graphic (sprout / tree)
+        // -------------------------------------------------------------
         SproutTree(level = level)
 
-        levelDisplay(level = level)
+        // -------------------------------------------------------------
+        // Level label
+        // -------------------------------------------------------------
+        LevelDisplay(level = level)
 
+        // -------------------------------------------------------------
+        // Progress bar + numeric label
+        // -------------------------------------------------------------
         ProgressIndicatorSection(
             animatedProgress = animatedProgress,
-            challengePoints = challengePoints
-            )
-
-        ProgressControlButtons(
-            onReset = { state.reset() }
+            totalPoints = totalPoints
         )
 
+        // -------------------------------------------------------------
+        // Control buttons (reset, navigation)
+        // -------------------------------------------------------------
+        ProgressControlButtons(onReset = { progressState.reset() })
         ChallengeButton(onClick = onNavigateToChallenges)
-
         NavigationButton(onNavigateBack = onNavigateBack)
+
+        // -------------------------------------------------------------
+        // *** Donation UI ***
+        // -------------------------------------------------------------
+        HorizontalDivider(
+            thickness = 1.dp,
+            color = MaterialTheme.colorScheme.surfaceVariant,
+            modifier = Modifier.padding(vertical = 12.dp)
+        )
+
+        Text(
+            text = "Donate clothing",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        OutlinedTextField(
+            value = countText,
+            onValueChange = { newText ->
+                // Accept only digits
+                if (newText.all { it.isDigit() }) countText = newText
+            },
+            label = { Text("Number of clothing items") },
+            placeholder = { Text("e.g. 5") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Button(
+            onClick = {
+                val count = countText.toIntOrNull()
+                if (count == null || count <= 0) {
+                    // Show a "snackbar" message
+                    showMessage("Enter a positive number.")
+                    return@Button
+                }
+
+                // Grant the points (10 pts per item)
+                appState.donateClothing(count)
+
+                // Confirmation snackbar
+                showMessage(
+                    "✅ Donated $count item(s) → +${count * ChallengeState.POINTS_PER_ITEM} points!"
+                )
+
+                // Reset the field for the next donation
+                countText = ""
+            },
+            enabled = countText.isNotBlank(),
+            modifier = Modifier.align(Alignment.End)
+        ) {
+            Text("Donate (+${ChallengeState.POINTS_PER_ITEM} pts each)")
+        }
     }
 }
 
+/* -------------------------------------------------------------
+   Helper composables
+   ------------------------------------------------------------- */
 @Composable
-private fun levelDisplay(
-    level: Int,
-    modifier: Modifier = Modifier
-    ) {
+private fun LevelDisplay(level: Int, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -132,13 +257,12 @@ private fun levelDisplay(
             color = MaterialTheme.colorScheme.primary
         )
     }
-
 }
 
 @Composable
 private fun ProgressIndicatorSection(
     animatedProgress: Float,
-    challengePoints: Int,
+    totalPoints: Int,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -152,13 +276,14 @@ private fun ProgressIndicatorSection(
         )
 
         Text(
-            text = "Total Points: $challengePoints",
+            text = "Total Points: $totalPoints",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.primary
         )
 
+        // LinearProgressIndicator expects a Float, not a lambda
         LinearProgressIndicator(
-            progress = { animatedProgress },
+            progress = animatedProgress,
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -170,15 +295,11 @@ private fun ProgressIndicatorSection(
 }
 
 @Composable
-private fun ProgressControlButtons(
-    onReset: () -> Unit,
-    modifier: Modifier = Modifier
-) {
+private fun ProgressControlButtons(onReset: () -> Unit, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-
         Button(
             onClick = onReset,
             modifier = Modifier.fillMaxWidth()
@@ -189,10 +310,7 @@ private fun ProgressControlButtons(
 }
 
 @Composable
-private fun NavigationButton(
-    onNavigateBack: () -> Unit,
-    modifier: Modifier = Modifier
-) {
+private fun NavigationButton(onNavigateBack: () -> Unit, modifier: Modifier = Modifier) {
     Button(
         onClick = onNavigateBack,
         modifier = modifier.fillMaxWidth()
@@ -201,18 +319,12 @@ private fun NavigationButton(
     }
 }
 
-
 @Composable
-private fun ChallengeButton(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
+private fun ChallengeButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
     Button(
         onClick = onClick,
         shape = RoundedCornerShape(12.dp),
-        modifier = modifier
-            .width(200.dp)
-            .height(48.dp)
+        modifier = modifier.width(200.dp).height(48.dp)
     ) {
         Text(text = "View Challenges")
     }
