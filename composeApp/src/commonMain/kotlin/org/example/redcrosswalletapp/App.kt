@@ -8,6 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import org.example.redcrosswalletapp.theme.RedCrossWalletLightTheme
 import org.example.redcrosswalletapp.ui.ChallengeScreen
 import org.example.redcrosswalletapp.ui.HomeScreen
 import org.example.redcrosswalletapp.ui.ProgressScreen
@@ -32,7 +33,7 @@ fun App() {
     // One AppState for the whole lifetime of the composable tree
     val appState = remember { AppState() }
 
-    MaterialTheme {
+    RedCrossWalletLightTheme {
         Surface(modifier = Modifier.fillMaxSize()) {
             AppContent(appState = appState)
         }
