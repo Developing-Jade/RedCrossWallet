@@ -65,7 +65,7 @@ private fun HomeScreenContent(
 
     Spacer(modifier = Modifier.height(48.dp))
 
-    DonationButton(onClick = onNavigateToProgress)
+    LoginButton(onClick = onNavigateToProgress)
 }
 
 @Composable
@@ -100,7 +100,7 @@ private fun WelcomeText(
 }
 
 @Composable
-private fun DonationButton(
+private fun LoginButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -111,6 +111,6 @@ private fun DonationButton(
             .width(200.dp)
             .height(48.dp)
     ) {
-        Text(text = "Start Donation")
+        Text(text = "Log in")
     }
 }

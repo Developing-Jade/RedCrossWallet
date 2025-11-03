@@ -15,8 +15,8 @@ class ChallengeState {
     }
     val challenges: SnapshotStateList<Challenge> = _challenges
 
-    private val _totalPoints = MutableStateFlow(0)
-    val totalPoints: StateFlow<Int> = _totalPoints.asStateFlow()
+    private val _totalPoints = MutableStateFlow(0L)
+    val totalPoints: StateFlow<Long> = _totalPoints.asStateFlow()
 
     /**
      * Call this when the user decides to donate `itemCount` pieces of clothing.
