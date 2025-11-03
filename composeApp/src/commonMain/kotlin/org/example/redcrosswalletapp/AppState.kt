@@ -48,7 +48,7 @@ class AppState {
                 val delta = (totalPoints - previousTotalPoints).coerceAtLeast(0L)
 
                 // Remember this value for the next round
-                previousTotalPoints = totalPoints.toLong()
+                previousTotalPoints = totalPoints
 
                 // Add the appropriate fraction for each new point
                 repeat(delta.toInt()) {

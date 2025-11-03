@@ -76,7 +76,7 @@ fun ChallengeScreen(
 
 @Composable
 private fun ChallengeHeader(
-    totalPoints: Int,
+    totalPoints: Long   ,
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {

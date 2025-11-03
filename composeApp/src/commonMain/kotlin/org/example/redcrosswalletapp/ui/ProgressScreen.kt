@@ -4,32 +4,12 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
@@ -45,6 +25,16 @@ import redcrosswalletapp.composeapp.generated.resources.sprout
 import redcrosswalletapp.composeapp.generated.resources.sprout_1
 import redcrosswalletapp.composeapp.generated.resources.sprout_2
 import redcrosswalletapp.composeapp.generated.resources.tree
+
+// ──────────────────────────────────────────────────────────────
+// Cosmetic drawables
+// ──────────────────────────────────────────────────────────────
+import redcrosswalletapp.composeapp.generated.resources.tree_valentines
+import redcrosswalletapp.composeapp.generated.resources.tree_flowers
+import redcrosswalletapp.composeapp.generated.resources.tree_easter
+import redcrosswalletapp.composeapp.generated.resources.tree_apples
+import redcrosswalletapp.composeapp.generated.resources.tree_halloween
+import redcrosswalletapp.composeapp.generated.resources.tree_christmas
 
 /**
  * Progress screen displaying a progress bar, level info, and a donation UI.
@@ -65,7 +55,9 @@ fun ProgressScreen(
     // Pull the pieces we need from AppState
     // -----------------------------------------------------------------
     val progressState = appState.progressState
+    // totalPoints is a Long (or Int) – collect it as a State
     val totalPoints by appState.challengeState.totalPoints.collectAsState()
+    // Visibility flag – already a State<Boolean> in AppState
     val isOnProgressScreen by appState.isOnProgressScreen
 
     // -----------------------------------------------------------------
@@ -82,8 +74,8 @@ fun ProgressScreen(
     }
 
     // -----------------------------------------------------------------
-    //    Layout – the whole screen lives inside a Box, so we can overlay
-    //    the SnackbarHost at the bottom.
+    // Layout – the whole screen lives inside a Box, so we can overlay
+    // the SnackbarHost at the bottom.
     // -----------------------------------------------------------------
     Box(
         modifier = modifier
@@ -116,7 +108,7 @@ fun ProgressScreen(
 @Composable
 private fun ProgressScreenContent(
     progressState: ProgressState,
-    totalPoints: Int,
+    totalPoints: Long,
     appState: AppState,
     isVisible: Boolean,
     onNavigateBack: () -> Unit,
@@ -126,10 +118,12 @@ private fun ProgressScreenContent(
     modifier: Modifier = Modifier
 ) {
     // -----------------------------------------------------------------
-    // Observe progress & level
+    // Observe progress, level, max‑level flag, and cosmetic index
     // -----------------------------------------------------------------
     val progress by progressState.progress.collectAsState()
     val level by progressState.level.collectAsState()
+    val isMaxLevel by progressState.isMaxLevelFlow.collectAsState()
+    val cosmeticIndex by progressState.cosmeticImageIndexFlow.collectAsState()
 
     // -----------------------------------------------------------------
     // Local UI state for the donation input
@@ -137,11 +131,9 @@ private fun ProgressScreenContent(
     var countText by remember { mutableStateOf("") }
 
     // -----------------------------------------------------------------
-    // Animated progress bar - Only animate when the screen is visible
+    // Animated progress bar – only animate when the screen is visible
     // -----------------------------------------------------------------
-    // When "isVisible" is false, force progress to 0f so the animation stops
     val targetProgress = if (isVisible) progress else 0f
-
     val animatedProgress by animateFloatAsState(
         targetValue = targetProgress,
         animationSpec = tween(durationMillis = 300),
@@ -149,10 +141,8 @@ private fun ProgressScreenContent(
     )
 
     // -----------------------------------------------------------------
-    // Image animation – we’ll fade the sprout/tree in only when visible.
+    // Image fade‑in animation
     // -----------------------------------------------------------------
-    // `alpha` goes from 0 → 1 the first time the screen becomes visible.
-    // Later visits keep it at 1 (no flicker).
     val imageAlpha by animateFloatAsState(
         targetValue = if (isVisible) 1f else 0f,
         animationSpec = tween(durationMillis = 500),
@@ -175,9 +165,13 @@ private fun ProgressScreenContent(
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
         // -------------------------------------------------------------
-        // Plant graphic (sprout / tree) - fade in when the screen is visible
+        // Plant graphic (sprout / tree)
         // -------------------------------------------------------------
-        SproutTree(level = level, alpha = imageAlpha)
+        SproutTree(
+            level = level,
+            isMaxLevel = isMaxLevel,
+            alpha = imageAlpha
+        )
 
         // -------------------------------------------------------------
         // Level label
@@ -191,6 +185,53 @@ private fun ProgressScreenContent(
             animatedProgress = animatedProgress,
             totalPoints = totalPoints
         )
+
+        // -------------------------------------------------------------
+        // **Cosmetic carousel – only visible when max level is reached**
+        // -------------------------------------------------------------
+        if (isMaxLevel) {
+            // -----------------------------------------------------------------
+            // 1️⃣ List of cosmetic drawables (add/remove as you like)
+            // -----------------------------------------------------------------
+            val cosmeticDrawables = listOf(
+                Res.drawable.tree_valentines,
+                Res.drawable.tree_flowers,
+                Res.drawable.tree_easter,
+                Res.drawable.tree_apples,
+                Res.drawable.tree_halloween,
+                Res.drawable.tree_christmas
+            )
+
+            // -----------------------------------------------------------------
+            // 2️⃣ Show the current cosmetic image
+            // -----------------------------------------------------------------
+            if (cosmeticDrawables.isNotEmpty()) {
+                Image(
+                    painter = painterResource(
+                        cosmeticDrawables[cosmeticIndex % cosmeticDrawables.size]
+                    ),
+                    contentDescription = "Cosmetic ${cosmeticIndex + 1}",
+                    modifier = Modifier
+                        .size(120.dp)
+                        .graphicsLayer { this.alpha = imageAlpha }
+                )
+            }
+
+            // -----------------------------------------------------------------
+            // 3️⃣ Button to cycle to the next cosmetic image
+            // -----------------------------------------------------------------
+            Button(
+                onClick = {
+                    // Tell ProgressState to advance the index
+                    progressState.advanceCosmeticImage(cosmeticDrawables.size)
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
+            ) {
+                Text("Next cosmetic")
+            }
+        }
 
         // -------------------------------------------------------------
         // Navigation buttons
@@ -230,7 +271,7 @@ private fun ProgressScreenContent(
             onClick = {
                 val count = countText.toIntOrNull()
                 if (count == null || count <= 0) {
-                    // Show a "snackbar" message
+                    // Show a snackbar message
                     showMessage("Enter a positive number.")
                     return@Button
                 }
@@ -275,7 +316,7 @@ private fun LevelDisplay(level: Int, modifier: Modifier = Modifier) {
 @Composable
 private fun ProgressIndicatorSection(
     animatedProgress: Float,
-    totalPoints: Int,
+    totalPoints: Long,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -294,7 +335,7 @@ private fun ProgressIndicatorSection(
             color = MaterialTheme.colorScheme.primary
         )
 
-        // LinearProgressIndicator expects a Float, not a lambda
+        // LinearProgressIndicator is deprecated - should be replaced with a non-deprecated variant
         LinearProgressIndicator(
             progress = animatedProgress,
             modifier = Modifier.fillMaxWidth()
@@ -331,7 +372,8 @@ private fun ChallengeButton(onClick: () -> Unit, modifier: Modifier = Modifier) 
 private fun SproutTree(
     modifier: Modifier = Modifier,
     level: Int,
-    alpha: Float = 1f
+    alpha: Float = 1f,
+    isMaxLevel: Boolean
 ) {
     val imageResource = when (level) {
         1 -> Res.drawable.sprout
@@ -343,8 +385,8 @@ private fun SproutTree(
     Image(
         painter = painterResource(imageResource),
         contentDescription = "Plant growth stage: Level $level",
-        modifier = modifier.size(120.dp)
-            //   graphicsLayer applies an opacity change without triggering a recomposition of the Image
-        .graphicsLayer { this.alpha = alpha } // Fade effect
+        modifier = modifier
+            .size(120.dp)
+            .graphicsLayer { this.alpha = alpha }
     )
 }

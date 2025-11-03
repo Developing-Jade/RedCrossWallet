@@ -4,116 +4,112 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-
 /**
  * State holder for progress tracking.
  * Manages a progress value in the range 0.0 to 1.0 (0% to 100%).
  * When progress reaches 100%, it automatically levels up and resets to 0%.
  *
  * @param initialProgress Starting progress value (default: 0f)
- * @param initialLevel Starting level (default: 1)
+ * @param initialLevel   Starting level (default: 1)
  */
 class ProgressState(
     initialProgress: Float = 0f,
     initialLevel: Int = 1,
 ) {
 
-    // Cast initialProgress to Double to avoid floating-point precision issues
+    // -----------------------------------------------------------------
+    // 1️⃣ Internal double‑precision accumulator (avoids rounding drift)
+    // -----------------------------------------------------------------
     private var internalProgress: Double =
         (initialProgress.coerceIn(MIN_PROGRESS, MAX_PROGRESS)).toDouble()
 
-
-    // Public observable flows for progress and level
+    // -----------------------------------------------------------------
+    // 2️⃣ Public observable flows for progress & level
+    // -----------------------------------------------------------------
     private val _progress = MutableStateFlow(initialProgress.coerceIn(MIN_PROGRESS, MAX_PROGRESS))
     private val _level = MutableStateFlow(initialLevel.coerceIn(1, MAX_LEVEL))
 
-    /**
-     * Observable progress value between 0.0 and 1.0
-     */
     val progress: StateFlow<Float> = _progress.asStateFlow()
-
-    /**
-     * Observable level value
-     */
     val level: StateFlow<Int> = _level.asStateFlow()
 
+    // -----------------------------------------------------------------
+    // 3️⃣ Max‑level flag (exposed as a flow)
+    // -----------------------------------------------------------------
+    private val _isMaxLevel = MutableStateFlow(isMaxLevel())
+    val isMaxLevelFlow: StateFlow<Boolean> = _isMaxLevel.asStateFlow()
 
-    // Public API - callers continue to use "Float" for progress
+    // -----------------------------------------------------------------
+    // 4️⃣ Cosmetic image carousel index (now a **MutableStateFlow**)
+    // -----------------------------------------------------------------
+    private val _cosmeticImageIndex = MutableStateFlow(0)   // <-- correct type
+    /** Public flow that UI can collect. */
+    val cosmeticImageIndexFlow: StateFlow<Int> = _cosmeticImageIndex.asStateFlow()
+
     /**
-     * Advances progress by a custom amount with auto level-up
+     * Call this when the user taps the “Next cosmetic” button.
      *
-     * @param amount The amount to add
+     * @param totalImages The number of images in the carousel.
      */
+    fun advanceCosmeticImage(totalImages: Int) {
+        if (totalImages <= 0) return               // safety guard
+        _cosmeticImageIndex.value = (_cosmeticImageIndex.value + 1) % totalImages
+    }
+
+    // -----------------------------------------------------------------
+    // 5️⃣ Public API – callers continue to use Float for progress
+    // -----------------------------------------------------------------
     fun advance(amount: Float) {
-        // Convert amount to Double
         internalProgress += amount.toDouble()
         normalizeAndEmit()
     }
 
-    /**
-     * Sets progress to a specific value with auto level-up
-     *
-     * @param value The new progress value (will be clamped between 0.0 and 1.0)
-     */
     fun setProgress(value: Float) {
         val newProgress = value.coerceIn(MIN_PROGRESS, MAX_PROGRESS)
 
-        // Check if we've completed a level
+        // If we cross the 100% threshold and aren't maxed out,
+        // trigger a level‑up.
         if (newProgress >= MAX_PROGRESS && _level.value < MAX_LEVEL) {
             levelUp()
         } else if (newProgress < MAX_PROGRESS && _level.value >= MAX_LEVEL) {
-            // At max level, just cap @ 100%
+            // At max level we just cap at 100%
             _progress.value = MAX_PROGRESS
         } else {
             _progress.value = newProgress
         }
     }
 
-    /**
-     * Resets progress back to 0% and resets level to 1
-     */
-    fun reset() {
-        _progress.value = MIN_PROGRESS
-        _level.value = 1
-    }
-
-    /**
-     * Checks if progress is complete (100%)
-     */
-    fun isComplete(): Boolean = _progress.value >= MAX_PROGRESS
-
-    /**
-     * Checks if at max level
-     */
+    /** Returns true when the current level is the maximum allowed. */
     fun isMaxLevel(): Boolean = _level.value >= MAX_LEVEL
 
+    // -----------------------------------------------------------------
+    // 6️⃣ Private helpers
+    // -----------------------------------------------------------------
     private fun normalizeAndEmit() {
-        // While we have more progress than a full level, normalize to 100%
-        // Consume 1 level at a time
+        // Consume whole levels while we have enough progress.
         while (internalProgress >= 1.0 && _level.value < MAX_LEVEL) {
             internalProgress -= 1.0
             levelUp()
         }
 
-        // If at max level, cap at 100%
+        // Clamp at max level if we’re already there.
         if (_level.value >= MAX_LEVEL && internalProgress > 1.0) {
             internalProgress = 1.0
         }
 
-        // Emit the normalized progress value for UI observation
+        // Emit the Float version for UI observers.
         _progress.value = internalProgress.toFloat()
     }
 
-
-    /**
-     * Levels up: increases level by 1 and resets progress to 0%
-     */
     private fun levelUp() {
         if (_level.value < MAX_LEVEL) {
             _level.value += 1
-            // Reset progress to 0%
-            // The level has been incremented, so we can safely reset progress
+            // Reset progress for the next level.
             _progress.value = MIN_PROGRESS
+
+            // If we just reached the maximum level, flip the flag.
+            if (_level.value >= MAX_LEVEL) {
+                _isMaxLevel.value = true
+            }
         }
     }
 
@@ -122,6 +118,9 @@ class ProgressState(
         setProgress(newProgress)
     }
 
+    // -----------------------------------------------------------------
+    // 7️⃣ Constants
+    // -----------------------------------------------------------------
     companion object {
         private const val MIN_PROGRESS = 0f
         private const val MAX_PROGRESS = 1f
