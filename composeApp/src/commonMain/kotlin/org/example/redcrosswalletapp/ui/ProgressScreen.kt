@@ -55,7 +55,7 @@ fun ProgressScreen(
     // Pull the pieces we need from AppState
     // -----------------------------------------------------------------
     val progressState = appState.progressState
-    // totalPoints is a Long (or Int) – collect it as a State
+    // totalPoints is a Long – collect it as a State
     val totalPoints by appState.challengeState.totalPoints.collectAsState()
     // Visibility flag – already a State<Boolean> in AppState
     val isOnProgressScreen by appState.isOnProgressScreen
@@ -165,34 +165,13 @@ private fun ProgressScreenContent(
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
         // -------------------------------------------------------------
-        // Plant graphic (sprout / tree)
+        // Plant graphic **or** cosmetic carousel (same spot)
         // -------------------------------------------------------------
-        SproutTree(
-            level = level,
-            isMaxLevel = isMaxLevel,
-            alpha = imageAlpha
-        )
+        val showCarousel = isMaxLevel && animatedProgress >= 1f
 
-        // -------------------------------------------------------------
-        // Level label
-        // -------------------------------------------------------------
-        LevelDisplay(level = level)
-
-        // -------------------------------------------------------------
-        // Progress bar + numeric label
-        // -------------------------------------------------------------
-        ProgressIndicatorSection(
-            animatedProgress = animatedProgress,
-            totalPoints = totalPoints
-        )
-
-        // -------------------------------------------------------------
-        // **Cosmetic carousel – only visible when max level is reached**
-        // -------------------------------------------------------------
-        if (isMaxLevel) {
-            // -----------------------------------------------------------------
-            // 1️⃣ List of cosmetic drawables (add/remove as you like)
-            // -----------------------------------------------------------------
+        if (showCarousel) {
+            // ------- Cosmetic carousel replaces the tree image -------
+            // 1️⃣ Define the list of drawables
             val cosmeticDrawables = listOf(
                 Res.drawable.tree_valentines,
                 Res.drawable.tree_flowers,
@@ -202,9 +181,7 @@ private fun ProgressScreenContent(
                 Res.drawable.tree_christmas
             )
 
-            // -----------------------------------------------------------------
-            // 2️⃣ Show the current cosmetic image
-            // -----------------------------------------------------------------
+            // 2️⃣ Show the current cosmetic image with the same size/animation
             if (cosmeticDrawables.isNotEmpty()) {
                 Image(
                     painter = painterResource(
@@ -212,14 +189,12 @@ private fun ProgressScreenContent(
                     ),
                     contentDescription = "Cosmetic ${cosmeticIndex + 1}",
                     modifier = Modifier
-                        .size(120.dp)
+                        .size(120.dp)                     // same dimensions as SproutTree
                         .graphicsLayer { this.alpha = imageAlpha }
                 )
             }
 
-            // -----------------------------------------------------------------
             // 3️⃣ Button to cycle to the next cosmetic image
-            // -----------------------------------------------------------------
             Button(
                 onClick = {
                     // Tell ProgressState to advance the index
@@ -231,10 +206,29 @@ private fun ProgressScreenContent(
             ) {
                 Text("Next cosmetic")
             }
+        } else {
+            // ------- Normal sprout/tree when not max level -------
+            SproutTree(
+                level = level,
+                alpha = imageAlpha
+            )
         }
 
         // -------------------------------------------------------------
-        // Navigation buttons
+        // Level label (unchanged)
+        // -------------------------------------------------------------
+        LevelDisplay(level = level)
+
+        // -------------------------------------------------------------
+        // Progress bar + numeric label (unchanged)
+        // -------------------------------------------------------------
+        ProgressIndicatorSection(
+            animatedProgress = animatedProgress,
+            totalPoints = totalPoints
+        )
+
+        // -------------------------------------------------------------
+        // Navigation buttons (unchanged)
         // -------------------------------------------------------------
         ChallengeButton(onClick = onNavigateToChallenges)
         NavigationButton(onNavigateBack = onNavigateBack)
@@ -372,8 +366,7 @@ private fun ChallengeButton(onClick: () -> Unit, modifier: Modifier = Modifier) 
 private fun SproutTree(
     modifier: Modifier = Modifier,
     level: Int,
-    alpha: Float = 1f,
-    isMaxLevel: Boolean
+    alpha: Float = 1f
 ) {
     val imageResource = when (level) {
         1 -> Res.drawable.sprout
