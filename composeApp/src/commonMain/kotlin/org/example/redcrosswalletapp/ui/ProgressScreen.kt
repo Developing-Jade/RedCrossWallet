@@ -248,18 +248,6 @@ private fun ProgressScreenContent(
             modifier = Modifier.padding(bottom = 8.dp)
         )
 
-        OutlinedTextField(
-            value = countText,
-            onValueChange = { newText ->
-                // Accept only digits
-                if (newText.all { it.isDigit() }) countText = newText
-            },
-            label = { Text("Number of clothing items") },
-            placeholder = { Text("e.g. 5") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
-        )
 
         Button(
             onClick = {
@@ -282,10 +270,23 @@ private fun ProgressScreenContent(
                 countText = ""
             },
             enabled = countText.isNotBlank(),
-            modifier = Modifier.align(Alignment.End)
+            modifier = Modifier.fillMaxSize()
         ) {
             Text("Donate (+${ChallengeState.POINTS_PER_ITEM} pts each)")
         }
+
+        OutlinedTextField(
+            value = countText,
+            onValueChange = { newText ->
+                // Accept only digits
+                if (newText.all { it.isDigit() }) countText = newText
+            },
+            label = { Text("Number of clothing items") },
+            placeholder = { Text("e.g. 5") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 }
 
