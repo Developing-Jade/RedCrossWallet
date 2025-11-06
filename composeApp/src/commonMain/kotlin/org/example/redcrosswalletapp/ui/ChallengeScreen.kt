@@ -84,6 +84,8 @@ private fun ChallengeHeader(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Spacer(modifier = Modifier.height(40.dp))
+
         Text(
             text = "Sustainability Challenges",
             style = MaterialTheme.typography.headlineMedium,
